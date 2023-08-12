@@ -10,8 +10,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>20</maven.compiler.source>
+    <maven.compiler.target>20</maven.compiler.target>
   </properties>
 
   <dependencies>
@@ -20,54 +20,52 @@
       <artifactId>smack-tcp</artifactId>
       <version>4.4.5</version>
     </dependency>
-    <!-- https://mvnrepository.com/artifact/org.igniterealtime.smack/smack -->
-    <dependency>
-      <groupId>org.igniterealtime.smack</groupId>
-      <artifactId>smack</artifactId>
-      <version>3.2.1</version>
-    </dependency>
-    <!-- https://mvnrepository.com/artifact/org.igniterealtime.smack/smack-extensions -->
-    <dependency>
-      <groupId>org.igniterealtime.smack</groupId>
-      <artifactId>smack-extensions</artifactId>
-      <version>4.4.5</version>
-    </dependency>
-    <!-- https://mvnrepository.com/artifact/org.igniterealtime.smack/smack-core -->
-    <dependency>
-      <groupId>org.igniterealtime.smack</groupId>
-      <artifactId>smack-core</artifactId>
-      <version>4.4.5</version>
-    </dependency>
-    <!-- https://mvnrepository.com/artifact/org.igniterealtime.smack/smackx -->
-    <dependency>
-      <groupId>org.igniterealtime.smack</groupId>
-      <artifactId>smackx</artifactId>
-      <version>3.2.1</version>
-    </dependency>
-    <!-- https://mvnrepository.com/artifact/org.igniterealtime.smack/smack-java7 -->
-    <dependency>
-      <groupId>org.igniterealtime.smack</groupId>
-      <artifactId>smack-java7</artifactId>
-      <version>4.3.4</version>
-    </dependency>
-    <!-- https://mvnrepository.com/artifact/org.igniterealtime.smack/smack-im -->
     <dependency>
       <groupId>org.igniterealtime.smack</groupId>
       <artifactId>smack-im</artifactId>
       <version>4.4.5</version>
     </dependency>
-    <!-- https://mvnrepository.com/artifact/org.igniterealtime.smack/smack-xmlparser-stax -->
     <dependency>
       <groupId>org.igniterealtime.smack</groupId>
-      <artifactId>smack-xmlparser-stax</artifactId>
+      <artifactId>smack-extensions</artifactId>
       <version>4.4.5</version>
     </dependency>
-    <!-- https://mvnrepository.com/artifact/org.igniterealtime.smack/smack-xmlparser -->
+    <dependency>
+      <groupId>org.igniterealtime.smack</groupId>
+      <artifactId>smack-java8</artifactId>
+      <version>4.4.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.igniterealtime.smack</groupId>
+      <artifactId>smack-resolver-javax</artifactId>
+      <version>4.4.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.igniterealtime.smack</groupId>
+      <artifactId>smack-debug</artifactId>
+      <version>4.4.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.igniterealtime.smack</groupId>
+      <artifactId>smack-sasl-provided</artifactId>
+      <version>4.4.5</version>
+    </dependency>
     <dependency>
       <groupId>org.igniterealtime.smack</groupId>
       <artifactId>smack-xmlparser</artifactId>
       <version>4.4.5</version>
     </dependency>
+    <dependency>
+      <groupId>org.igniterealtime.smack</groupId>
+      <artifactId>smack-resolver-minidns</artifactId>
+      <version>4.4.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.igniterealtime.smack</groupId>
+      <artifactId>smack-xmlparser-stax</artifactId>
+      <version>4.4.5</version>
+    </dependency>
+
   </dependencies>
 
   <build>
