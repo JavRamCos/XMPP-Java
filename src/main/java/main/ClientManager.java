@@ -13,6 +13,7 @@ import java.io.IOException;
 
 public class ClientManager {
     AbstractXMPPConnection connection;
+    AccountManager acc_manager;
     String s_username, s_password;
     public ClientManager() {
         this.s_username = "";
@@ -30,6 +31,7 @@ public class ClientManager {
                     .build();
             this.connection = new XMPPTCPConnection(config);
             this.connection.connect();
+            this.acc_manager = AccountManager.getInstance(this.connection);
         } catch (SmackException | IOException | XMPPException | InterruptedException e) {
             return false;
         }
@@ -38,9 +40,9 @@ public class ClientManager {
 
     public boolean registerUser(String username, String password) {
         try {
-            AccountManager accounts = AccountManager.getInstance(this.connection);
-            if (accounts.supportsAccountCreation()) {
-                accounts.createAccount(Localpart.from(username), password);
+            if (this.acc_manager.supportsAccountCreation()) {
+                this.acc_manager.sensitiveOperationOverInsecureConnection(true);
+                this.acc_manager.createAccount(Localpart.from(username), password);
             }
         } catch (XMPPException.XMPPErrorException | SmackException.NotConnectedException
                  | SmackException.NoResponseException | InterruptedException | XmppStringprepException e) {
@@ -55,6 +57,18 @@ public class ClientManager {
             this.s_username = username;
             this.s_password = password;
         } catch (XMPPException | SmackException | IOException | InterruptedException e) {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean deleteAccount() {
+        try {
+            if(this.acc_manager != null) {
+                this.acc_manager.deleteAccount();
+            }
+        } catch (XMPPException.XMPPErrorException | SmackException.NotConnectedException |
+                 SmackException.NoResponseException | InterruptedException e) {
             return false;
         }
         return true;
