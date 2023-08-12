@@ -1,8 +1,6 @@
 import main.ClientManager;
 import main.MessageManager;
 
-import java.util.Arrays;
-import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class Main {
@@ -14,42 +12,66 @@ public class Main {
             System.exit(1);
         }
         new Thread(() -> {
-            if(client_handler.connectToServer(args[0])) {
-                // CONNECTION TO SERVER SUCCESSFULLY
-                Scanner scanner = new Scanner(System.in);
-                message_handler.print("Connected ...");
-                // MAIN LOOP
-                while(true) {
+            // CONNECTION TO SERVER SUCCESSFULLY
+            Scanner scanner = new Scanner(System.in);
+            boolean is_running = true;
+            int main_option = 0;
+            // MAIN LOOP
+            while(is_running) {
+                if(client_handler.connectToServer(args[0])) {
                     message_handler.displayLoginSignupMenu();
                     message_handler.print("> Enter input");
                     // USER 1st OPTION
-                    int option;
                     try {
-                        option = scanner.nextInt();
-                    } catch(InputMismatchException e) {
+                        main_option = Integer.parseInt(scanner.nextLine());
+                    } catch(NumberFormatException e) {
                         message_handler.displayError("Input must be of type INT");
-                        scanner.nextLine();
                         continue;
                     }
-                    if(option == 1) {
+                    if(main_option == 1) {
                         // REGISTER NEW USER
-                    } else if(option == 2) {
+                        System.out.println("\nEnter username: ");
+                        String username = scanner.nextLine();;
+                        System.out.println("Enter password: ");
+                        String passwd = scanner.nextLine();
+                        if (client_handler.registerUser(username, passwd)) {
+                            // REGISTRATION SUCCESSFUL
+                            message_handler.print("User created successfully ...");
+                        } else {
+                            // REGISTRATION FAILED
+                            message_handler.print("User creation failed ...");
+                        }
+                    } else if(main_option == 2) {
                         // LOGIN
-                    } else if(option == 3) {
+                        System.out.println("\nEnter username: ");
+                        String username = scanner.nextLine();;
+                        System.out.println("Enter password: ");
+                        String passwd = scanner.nextLine();
+                        if(client_handler.userLogin(username, passwd)) {
+                            // LOGIN SUCCESSFUL
+                            message_handler.print("Login successful ...");
+                            message_handler.setUsername(username);
+                            message_handler.displayClientMenu();
+                        } else {
+                            // LOGIN FAILED
+                            message_handler.displayError("Login failed ...");
+                        }
+                    } else if(main_option == 3) {
                         // DISCONNECT FROM SERVER
                         message_handler.print("Disconnecting from server ...");
-                        break;
+                        is_running = false;
                     } else {
                         // INVALID OPTION
                         message_handler.displayError("Enter number between 1 & 3");
                     }
+                    client_handler.disconnectFromServer();
+                } else {
+                    // FAILED TO CONNECT TO SERVER
+                    message_handler.displayError("Server connection error");
+                    is_running = false;
                 }
-                client_handler.disconnectFromServer();
-                message_handler.print("Disconnected from server");
-            } else {
-                // FAILED TO CONNECT TO SERVER
-                message_handler.displayError("Error connecting to server ...");
             }
+            message_handler.print("Program closed");
         }).start();
     }
 }
