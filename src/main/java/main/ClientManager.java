@@ -1,22 +1,26 @@
 package main;
 
-import org.jivesoftware.smack.AbstractXMPPConnection;
-import org.jivesoftware.smack.ConnectionConfiguration;
-import org.jivesoftware.smack.SmackException;
-import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.*;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.PresenceBuilder;
+import org.jivesoftware.smack.roster.Roster;
+import org.jivesoftware.smack.roster.RosterEntry;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.iqregister.AccountManager;
 import org.jxmpp.jid.parts.Localpart;
 import org.jxmpp.stringprep.XmppStringprepException;
+
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 public class ClientManager {
     AbstractXMPPConnection connection;
     AccountManager acc_manager;
-    String s_username, s_password;
+    String s_username, s_password, host_name;
     public ClientManager() {
         this.s_username = "";
         this.s_password = "";
@@ -34,6 +38,7 @@ public class ClientManager {
             this.connection = new XMPPTCPConnection(config);
             this.connection.connect();
             this.acc_manager = AccountManager.getInstance(this.connection);
+            this.host_name = "@"+server_name;
         } catch (SmackException | IOException | XMPPException | InterruptedException e) {
             return false;
         }
@@ -78,6 +83,54 @@ public class ClientManager {
         } catch (SmackException.NotConnectedException | InterruptedException e) {
             return false;
         }
+        return true;
+    }
+
+    public List<List<String>> getRosterInformation(int option, String username) {
+        List<List<String>> result = new ArrayList<>();
+        Roster.setDefaultSubscriptionMode(Roster.SubscriptionMode.manual);
+        Roster roster = Roster.getInstanceFor(this.connection);
+        try {
+            if (!roster.isLoaded()) roster.reloadAndWait();
+            Collection<RosterEntry> entries = roster.getEntries();
+            Presence presence;
+            if(option == 1) {
+                // ALL USERS INFO
+                for(RosterEntry entry : entries) {
+                    presence = roster.getPresence(entry.getJid());
+                    String name = entry.getJid().toString().substring(0, entry.getJid().toString().indexOf("@"));
+                    String status = presence.getMode().toString();
+                    String message = presence.getStatus() == null ? "" : presence.getStatus();
+                    String available = presence.isAvailable() ? "Yes" : "No";
+                    result.add(Arrays.asList(name, status, message, available));
+                }
+            } else {
+                // USER INFO
+                for(RosterEntry entry : entries) {
+                    presence = roster.getPresence(entry.getJid());
+                    String name = entry.getJid().toString().substring(0, entry.getJid().toString().indexOf("@"));
+                    if(name.equals(username)) {
+                        String status = presence.getMode().toString();
+                        String message = presence.getStatus() == null ? "" : presence.getStatus();
+                        String available = presence.isAvailable() ? "Yes" : "No";
+                        result.add(Arrays.asList(name, status, message, available));
+                        break;
+                    }
+                }
+            }
+        } catch (SmackException.NotLoggedInException | SmackException.NotConnectedException
+                 | InterruptedException e) {
+            return result;
+        }
+        return result;
+    }
+
+    public List<String> getUserInformation() {
+        return Arrays.asList(this.s_username, this.s_password);
+    }
+
+    public boolean changeUserPassword(String password) {
+        this.s_password = password;
         return true;
     }
 

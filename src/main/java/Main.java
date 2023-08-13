@@ -2,6 +2,8 @@ import main.ClientManager;
 import main.InputManager;
 import main.MessageManager;
 
+import java.util.List;
+
 public class Main {
     public static void main(String[] args) {
         MessageManager message_handler = new MessageManager();
@@ -51,6 +53,31 @@ public class Main {
                                 else if(user_option == 1) {
                                     // INFORMATION
                                     message_handler.displayInfoOptions();
+                                    user_option = input_handler.getIntInput(1, 4, 0);
+                                    if(user_option == 0) message_handler.displayError("Enter number between 1 & 4");
+                                    else if(user_option == 1) {
+                                        // ALL USERS INFO
+                                        List<List<String>> info = client_handler.getRosterInformation(1, "");
+                                        if(info.size() == 0) {
+                                            message_handler.displayError("No users found");
+                                        } else {
+                                            message_handler.displayUsersInfo(info);
+                                        }
+                                    } else if(user_option == 2) {
+                                        // USER INFO
+                                        String usr = input_handler.getStringInput("username");
+                                        List<List<String>> info = client_handler.getRosterInformation(2, usr);
+                                        if(info.size() == 0) {
+                                            message_handler.displayError("No user found");
+                                        } else {
+                                            message_handler.displayUsersInfo(info);
+                                        }
+                                    } else if(user_option == 3) {
+                                        // SELF INFO
+                                        List<String> info = client_handler.getUserInformation();
+                                        message_handler.print("-> Username: "+info.get(0));
+                                        message_handler.print("   Password: "+info.get(1));
+                                    }
                                 } else if(user_option == 2) {
                                     // CONTACTS
                                     message_handler.displayContactOptions();

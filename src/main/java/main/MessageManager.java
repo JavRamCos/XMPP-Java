@@ -1,5 +1,7 @@
 package main;
 
+import java.util.List;
+
 public class MessageManager {
     String username;
     public MessageManager() { }
@@ -28,16 +30,25 @@ public class MessageManager {
 
     public void displayInfoOptions() {
         System.out.print("""
-                ========== INFORMATION OPTIONS ==========
+                \n========= INFORMATION OPTIONS ==========
                 1. Display all users information
                 2. Display user information
                 3. Display own information
                 4. Cancel""");
     }
 
+    public void displayUsersInfo(List<List<String>> users) {
+        for(List<String> user : users) {
+            System.out.println("-> Username: "+user.get(0));
+            System.out.println("   Status: "+user.get(1));
+            System.out.println("   Message: "+user.get(2));
+            System.out.println("   Available: "+user.get(3));
+        }
+    }
+
     public void displayContactOptions() {
         System.out.print("""
-                ========== CONTACTS OPTIONS ==========
+                \n========== CONTACTS OPTIONS ==========
                 1. Send Friend Request
                 2. See pending Requests
                 3. Cancel""");
@@ -45,7 +56,7 @@ public class MessageManager {
 
     public void displayAdminOptions() {
         System.out.print("""
-                ========== ADMINISTRATION OPTIONS ==========
+                \n========== ADMINISTRATION OPTIONS ==========
                 1. Change status
                 2. Delete Account
                 3. Cancel""");
@@ -53,7 +64,7 @@ public class MessageManager {
 
     public void displayStatusOptions() {
         System.out.print("""
-                ========== STATUS OPTIONS ==========
+                \n========== STATUS OPTIONS ==========
                 1. Available (default)
                 2. Chat
                 3. Away
@@ -63,7 +74,7 @@ public class MessageManager {
 
     public void displayNotificationsOptions() {
         System.out.print("""
-                ========== NOTIFICATIONS OPTIONS ==========
+                \n========== NOTIFICATIONS OPTIONS ==========
                 1. Check notifications
                 2. Send notification
                 3. Cancel""");
@@ -71,7 +82,7 @@ public class MessageManager {
 
     public void displayChatOptions() {
         System.out.print("""
-                ========== CHAT OPTIONS ==========
+                \n========== CHAT OPTIONS ==========
                 1. User chat
                 2. Group chat
                 3. Cancel""");
