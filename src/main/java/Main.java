@@ -81,6 +81,17 @@ public class Main {
                                 } else if(user_option == 2) {
                                     // CONTACTS
                                     message_handler.displayContactOptions();
+                                    user_option = input_handler.getIntInput(1, 2, 0);
+                                    if(user_option == 0) message_handler.displayError("Enter a number between 1 & 3");
+                                    else if(user_option == 1) {
+                                        // SEND FRIEND REQUEST
+                                        String usr = input_handler.getStringInput("username");
+                                        String nick = input_handler.getStringInput("user's nickname");
+                                        int res = client_handler.sendFriendRequest(usr, nick);
+                                        if(res < 0) message_handler.displayError("Unable to send friend request");
+                                        else if(res == 0) message_handler.displayError("User is already in roster");
+                                        else if(res == 1) message_handler.print("Friend request send successfully");
+                                    }
                                 } else if(user_option == 3) {
                                     //ADMINISTRATION
                                     message_handler.displayAdminOptions();

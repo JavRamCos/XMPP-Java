@@ -20,7 +20,7 @@ public class MessageManager {
 
     public void displaySessionMenu() {
         System.out.print("\n========== "+this.username+" Session ==========\n" +
-                "1. Display Users information\n" +
+                "1. Display User/s information\n" +
                 "2. Manage contacts\n" +
                 "3. Manage Account\n" +
                 "4. Manage notifications\n" +
@@ -50,8 +50,7 @@ public class MessageManager {
         System.out.print("""
                 \n========== CONTACTS OPTIONS ==========
                 1. Send Friend Request
-                2. See pending Requests
-                3. Cancel""");
+                2. Cancel""");
     }
 
     public void displayAdminOptions() {

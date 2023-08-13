@@ -8,6 +8,8 @@ import org.jivesoftware.smack.roster.RosterEntry;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.iqregister.AccountManager;
+import org.jxmpp.jid.EntityBareJid;
+import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.jid.parts.Localpart;
 import org.jxmpp.stringprep.XmppStringprepException;
 
@@ -20,6 +22,7 @@ import java.util.List;
 public class ClientManager {
     AbstractXMPPConnection connection;
     AccountManager acc_manager;
+    Roster roster;
     String s_username, s_password, host_name;
     public ClientManager() {
         this.s_username = "";
@@ -39,6 +42,8 @@ public class ClientManager {
             this.connection.connect();
             this.acc_manager = AccountManager.getInstance(this.connection);
             this.host_name = "@"+server_name;
+            Roster.setDefaultSubscriptionMode(Roster.SubscriptionMode.manual);
+            this.roster = Roster.getInstanceFor(this.connection);
         } catch (SmackException | IOException | XMPPException | InterruptedException e) {
             return false;
         }
@@ -88,16 +93,14 @@ public class ClientManager {
 
     public List<List<String>> getRosterInformation(int option, String username) {
         List<List<String>> result = new ArrayList<>();
-        Roster.setDefaultSubscriptionMode(Roster.SubscriptionMode.manual);
-        Roster roster = Roster.getInstanceFor(this.connection);
         try {
-            if (!roster.isLoaded()) roster.reloadAndWait();
-            Collection<RosterEntry> entries = roster.getEntries();
+            if (!this.roster.isLoaded()) this.roster.reloadAndWait();
+            Collection<RosterEntry> entries = this.roster.getEntries();
             Presence presence;
             if(option == 1) {
                 // ALL USERS INFO
                 for(RosterEntry entry : entries) {
-                    presence = roster.getPresence(entry.getJid());
+                    presence = this.roster.getPresence(entry.getJid());
                     String name = entry.getJid().toString().substring(0, entry.getJid().toString().indexOf("@"));
                     String status = presence.getMode().toString();
                     String message = presence.getStatus() == null ? "" : presence.getStatus();
@@ -107,7 +110,7 @@ public class ClientManager {
             } else {
                 // USER INFO
                 for(RosterEntry entry : entries) {
-                    presence = roster.getPresence(entry.getJid());
+                    presence = this.roster.getPresence(entry.getJid());
                     String name = entry.getJid().toString().substring(0, entry.getJid().toString().indexOf("@"));
                     if(name.equals(username)) {
                         String status = presence.getMode().toString();
@@ -127,6 +130,20 @@ public class ClientManager {
 
     public List<String> getUserInformation() {
         return Arrays.asList(this.s_username, this.s_password);
+    }
+
+    public int sendFriendRequest(String username, String nickname) {
+        try {
+            if (!this.roster.isLoaded()) this.roster.reloadAndWait();
+            EntityBareJid entity = JidCreate.entityBareFrom(username+this.host_name);
+            if(this.roster.contains(entity)) return 0;
+            this.roster.createItemAndRequestSubscription(entity, nickname, null);
+        } catch (XmppStringprepException | SmackException.NotConnectedException
+                | SmackException.NotLoggedInException | InterruptedException
+                | XMPPException.XMPPErrorException | SmackException.NoResponseException e) {
+            return -1;
+        }
+        return 1;
     }
 
     public boolean changeUserPassword(String password) {
