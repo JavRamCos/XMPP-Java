@@ -21,8 +21,8 @@ public class MessageManager {
                 "1. Display Users information\n" +
                 "2. Manage contacts\n" +
                 "3. Manage Account\n" +
-                "4. Chat\n" +
-                "5. Send notification\n" +
+                "4. Manage notifications\n" +
+                "5. Chat\n" +
                 "6. Close session");
     }
 
@@ -43,19 +43,37 @@ public class MessageManager {
                 3. Cancel""");
     }
 
-    public void displayChatOptions() {
-        System.out.print("""
-                ========== CHAT OPTIONS ==========
-                1. User chat
-                2. Group chat
-                3. Cancel""");
-    }
-
     public void displayAdminOptions() {
         System.out.print("""
                 ========== ADMINISTRATION OPTIONS ==========
                 1. Change status
                 2. Delete Account
+                3. Cancel""");
+    }
+
+    public void displayStatusOptions() {
+        System.out.print("""
+                ========== STATUS OPTIONS ==========
+                1. Available (default)
+                2. Chat
+                3. Away
+                4. Extended Away
+                5. Do not disturb""");
+    }
+
+    public void displayNotificationsOptions() {
+        System.out.print("""
+                ========== NOTIFICATIONS OPTIONS ==========
+                1. Check notifications
+                2. Send notification
+                3. Cancel""");
+    }
+
+    public void displayChatOptions() {
+        System.out.print("""
+                ========== CHAT OPTIONS ==========
+                1. User chat
+                2. Group chat
                 3. Cancel""");
     }
 

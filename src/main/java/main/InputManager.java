@@ -12,16 +12,15 @@ public class InputManager {
         this.confirms = Arrays.asList("Yes", "yes", "Y", "y");
     }
 
-    public int getIntInput(int min, int max) {
-        int result;
+    public int getIntInput(int min, int max, int def) {
         try {
             System.out.print("\n> Enter option: ");
-            result = Integer.parseInt(this.scanner.nextLine());
-            if(result < min || result > max) result = 0;
+            int result = Integer.parseInt(this.scanner.nextLine());
+            if(result < min || result > max) return def;
+            return result;
         } catch(NumberFormatException e) {
-            result = 0;
+            return def;
         }
-        return result;
     }
 
     public String getStringInput(String var_name) {

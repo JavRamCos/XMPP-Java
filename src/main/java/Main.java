@@ -20,7 +20,7 @@ public class Main {
                 if(client_handler.connectToServer(args[0])) {
                     message_handler.displayLoginSignupMenu();
                     // USER'S MAIN OPTION
-                    main_option = input_handler.getIntInput(1, 3);
+                    main_option = input_handler.getIntInput(1, 3, 0);
                     if(main_option == 0) message_handler.displayError("Enter number between 1 & 3");
                     else if(main_option == 1) {
                         // REGISTER NEW USER
@@ -46,7 +46,7 @@ public class Main {
                             while(in_session) {
                                 message_handler.displaySessionMenu();
                                 // USER'S SESSION OPTION
-                                user_option = input_handler.getIntInput(1, 6);
+                                user_option = input_handler.getIntInput(1, 6, 0);
                                 if(user_option == 0) message_handler.displayError("Enter number between 1 & 6");
                                 else if(user_option == 1) {
                                     // INFORMATION
@@ -57,10 +57,18 @@ public class Main {
                                 } else if(user_option == 3) {
                                     //ADMINISTRATION
                                     message_handler.displayAdminOptions();
-                                    user_option = input_handler.getIntInput(1, 3);
+                                    user_option = input_handler.getIntInput(1, 3, 0);
                                     if(user_option == 0) message_handler.displayError("Enter a number between 1 & 3");
                                     else if(user_option == 1) {
                                         // CHANGE STATUS
+                                        message_handler.displayStatusOptions();
+                                        int st_option = input_handler.getIntInput(1, 5, 1);
+                                        String message = input_handler.getStringInput("status");
+                                        if(client_handler.changeUserStatus(st_option, message)) {
+                                            message_handler.print("Status changed successfully");
+                                        } else {
+                                            message_handler.displayError("Status change unsuccessful");
+                                        }
                                     } else if(user_option == 2) {
                                         // DELETE ACCOUNT
                                         if(input_handler.getConfirmation()) {
@@ -73,10 +81,11 @@ public class Main {
                                         }
                                     }
                                 } else if(user_option == 4) {
+                                    // NOTIFICATION
+                                    message_handler.displayNotificationsOptions();
+                                } else if(user_option == 5) {
                                     // CHAT
                                     message_handler.displayChatOptions();
-                                } else if(user_option == 5) {
-                                    // NOTIFICATION
                                 } else if(user_option == 6) {
                                     // CLOSE SESSION
                                     message_handler.print("Closing session ...\n");

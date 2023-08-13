@@ -4,6 +4,8 @@ import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.packet.PresenceBuilder;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.iqregister.AccountManager;
@@ -57,6 +59,23 @@ public class ClientManager {
             this.s_username = username;
             this.s_password = password;
         } catch (XMPPException | SmackException | IOException | InterruptedException e) {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean changeUserStatus(int option, String message) {
+        PresenceBuilder pres = new Presence(Presence.Type.available).asBuilder();
+        pres.setPriority(1);
+        pres.setStatus(message);
+        if(option == 1) pres.setMode(Presence.Mode.available);
+        else if(option == 2) pres.setMode(Presence.Mode.chat);
+        else if(option == 3) pres.setMode(Presence.Mode.away);
+        else if(option == 4) pres.setMode(Presence.Mode.xa);
+        else if(option == 5) pres.setMode(Presence.Mode.dnd);
+        try {
+            this.connection.sendStanza(pres.build());
+        } catch (SmackException.NotConnectedException | InterruptedException e) {
             return false;
         }
         return true;
