@@ -12,7 +12,7 @@ public class MessageManager {
 
     public void displayLoginSignupMenu() {
         System.out.print("""
-                        ========== XMPP Client ==========
+                        \n========== XMPP Client ==========
                         1. Register
                         2. Login
                         3. Exit""");

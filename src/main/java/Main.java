@@ -26,7 +26,8 @@ public class Main {
                     if(main_option == 0) message_handler.displayError("Enter number between 1 & 3");
                     else if(main_option == 1) {
                         // REGISTER NEW USER
-                        String username = input_handler.getStringInput("new username");
+                        String username = input_handler.getStringInput("new username (exit to cancel)");
+                        if(username.equals("exit")) continue;
                         String passwd = input_handler.getStringInput("new password");
                         if (client_handler.registerUser(username, passwd)) {
                             // REGISTRATION SUCCESSFUL
@@ -37,7 +38,8 @@ public class Main {
                         }
                     } else if(main_option == 2) {
                         // LOGIN
-                        String username = input_handler.getStringInput("username");
+                        String username = input_handler.getStringInput("username (exit to cancel)");
+                        if(username.equals("exit")) continue;
                         String passwd = input_handler.getStringInput("password");
                         if(client_handler.userLogin(username, passwd)) {
                             // LOGIN SUCCESSFUL
