@@ -16,21 +16,20 @@ import org.jxmpp.jid.parts.Localpart;
 import org.jxmpp.stringprep.XmppStringprepException;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 public class ClientManager {
     AbstractXMPPConnection connection;
     AccountManager acc_manager;
     Roster roster;
-    RosterListener rost_listener;
-    SubscribeListener sub_listener;
+    RosterManager roster_handler;
+    SubscriptionManager sub_handler;
     String s_username, s_password, host_name;
-    public ClientManager() {
+    InputManager input_handler;
+    public ClientManager(InputManager input_handler) {
         this.s_username = "";
         this.s_password = "";
+        this.input_handler = input_handler;
         setListeners();
     }
 
@@ -53,28 +52,8 @@ public class ClientManager {
     }
 
     public void setListeners() {
-        this.rost_listener = new RosterListener() {
-            @Override
-            public void entriesAdded(Collection<Jid> collection) { }
-            @Override
-            public void entriesUpdated(Collection<Jid> collection) { }
-            @Override
-            public void entriesDeleted(Collection<Jid> collection) { }
-            @Override
-            public void presenceChanged(Presence presence) {
-                String usr = presence.getFrom().toString().substring(0, presence.getFrom().toString().indexOf("@"));
-                String status = presence.getStatus() == null ? " " : " ("+presence.getStatus()+") ";
-                System.out.print("\n***** "+usr+" is now " +presence.getMode().toString()+status+"*****");
-            }
-        };
-        this.sub_listener = new SubscribeListener() {
-            @Override
-            public SubscribeAnswer processSubscribe(Jid jid, Presence presence) {
-                String usr = presence.getFrom().toString().substring(0, presence.getFrom().toString().indexOf("@"));
-                System.out.println("\n***** "+usr+"is request a subscription *****");
-                return null;
-            }
-        };
+        this.roster_handler = new RosterManager();
+        this.sub_handler = new SubscriptionManager();
     }
 
     public boolean registerUser(String username, String password) {
@@ -99,8 +78,8 @@ public class ClientManager {
             this.acc_manager = AccountManager.getInstance(this.connection);
             Roster.setDefaultSubscriptionMode(Roster.SubscriptionMode.manual);
             this.roster = Roster.getInstanceFor(this.connection);
-            this.roster.addRosterListener(this.rost_listener);
-            this.roster.addSubscribeListener(this.sub_listener);
+            this.roster.addRosterListener(this.roster_handler);
+            this.roster.addSubscribeListener(this.sub_handler);
             if(!this.roster.isLoaded()) roster.reloadAndWait();
         } catch (XMPPException | SmackException | IOException | InterruptedException e) {
             return false;
@@ -125,7 +104,7 @@ public class ClientManager {
     public List<List<String>> getRosterInformation(int option, String username) {
         List<List<String>> result = new ArrayList<>();
         try {
-            if (!this.roster.isLoaded()) this.roster.reloadAndWait();
+            this.roster.reloadAndWait();
             Collection<RosterEntry> entries = this.roster.getEntries();
             Presence presence;
             if(option == 1) {
@@ -163,12 +142,12 @@ public class ClientManager {
         return Arrays.asList(this.s_username, this.s_password);
     }
 
-    public int sendFriendRequest(String username, String nickname) {
+    public int sendFriendRequest(String username) {
         try {
             this.roster.reloadAndWait();
             EntityBareJid entity = JidCreate.entityBareFrom(username+this.host_name);
             if(this.roster.contains(entity)) return 0;
-            this.roster.createItemAndRequestSubscription(entity, nickname, null);
+            this.roster.createItemAndRequestSubscription(entity, username, null);
         } catch (XmppStringprepException | SmackException.NotConnectedException
                 | SmackException.NotLoggedInException | InterruptedException
                 | XMPPException.XMPPErrorException | SmackException.NoResponseException e) {
@@ -177,9 +156,33 @@ public class ClientManager {
         return 1;
     }
 
-    public boolean changeUserPassword(String password) {
-        this.s_password = password;
-        return true;
+    public void handleRequests() {
+        Map<Jid, Presence> requests = this.sub_handler.getRequests();
+        int num_requests = requests.size();
+        for(Map.Entry<Jid, Presence> entry : requests.entrySet()) {
+            Jid jid = entry.getKey();
+            Presence pres = entry.getValue();
+            String usr = pres.getFrom().toString().substring(0, pres.getFrom().toString().indexOf("@"));
+            System.out.println("*** " + num_requests + "Requests Left ***");
+            if(input_handler.getConfirmation("Approve "+usr+"'s request")) {
+                Stanza subscribed = new Presence(Type.subscribed);
+                subscribed.setTo(jid);
+                Stanza subscribe = new Presence(Type.subscribe);
+                subscribe.setTo(jid);
+                try {
+                    this.connection.sendStanza(subscribe);
+                    this.connection.sendStanza(subscribed);
+                } catch (SmackException.NotConnectedException | InterruptedException e) {
+                    System.out.println("Unable to process request");
+                }
+            }
+            num_requests--;
+        }
+        this.sub_handler.resetRequests();
+    }
+
+    public int getPendingRequests() {
+        return this.sub_handler.getRequests().size();
     }
 
     public boolean deleteAccount() {
@@ -195,8 +198,10 @@ public class ClientManager {
     }
 
     public void disconnectFromServer() {
-        this.roster.removeRosterListener(this.rost_listener);
-        this.roster.removeSubscribeListener(this.sub_listener);
+        if(this.roster != null) {
+            this.roster.removeRosterListener(this.roster_handler);
+            this.roster.removeSubscribeListener(this.sub_handler);
+        }
         this.connection.disconnect();
         this.s_username = "";
         this.s_password = "";

@@ -23,13 +23,13 @@ public class InputManager {
         }
     }
 
-    public String getStringInput(String var_name) {
-        System.out.print("> Enter "+var_name+": ");
+    public String getStringInput(String msg) {
+        System.out.print("> "+msg+": ");
         return this.scanner.nextLine();
     }
 
-    public boolean getConfirmation() {
-        System.out.print("> Enter confirmation (yes/no): ");
+    public boolean getConfirmation(String msg) {
+        System.out.print("> "+msg+" (yes/no): ");
         String input = this.scanner.nextLine();
         return this.confirms.contains(input);
     }

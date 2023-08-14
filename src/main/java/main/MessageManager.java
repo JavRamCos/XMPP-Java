@@ -23,9 +23,8 @@ public class MessageManager {
                 "1. Display User/s information\n" +
                 "2. Manage contacts\n" +
                 "3. Manage Account\n" +
-                "4. Manage notifications\n" +
-                "5. Chat\n" +
-                "6. Close session");
+                "4. Chat\n" +
+                "5. Close session");
     }
 
     public void displayInfoOptions() {
@@ -38,6 +37,7 @@ public class MessageManager {
     }
 
     public void displayUsersInfo(List<List<String>> users) {
+        System.out.println("===== CONTACT INFORMATION =====");
         for(List<String> user : users) {
             System.out.println("-> Username: "+user.get(0));
             System.out.println("   Status: "+user.get(1));
@@ -50,7 +50,8 @@ public class MessageManager {
         System.out.print("""
                 \n========== CONTACTS OPTIONS ==========
                 1. Send Friend Request
-                2. Cancel""");
+                2. Manage Pending Requests
+                3. Cancel""");
     }
 
     public void displayAdminOptions() {
@@ -69,14 +70,6 @@ public class MessageManager {
                 3. Away
                 4. Extended Away
                 5. Do not disturb""");
-    }
-
-    public void displayNotificationsOptions() {
-        System.out.print("""
-                \n========== NOTIFICATIONS OPTIONS ==========
-                1. Check notifications
-                2. Send notification
-                3. Cancel""");
     }
 
     public void displayChatOptions() {

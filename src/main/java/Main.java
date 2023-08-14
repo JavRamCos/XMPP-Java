@@ -7,8 +7,8 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) {
         MessageManager message_handler = new MessageManager();
-        ClientManager client_handler = new ClientManager();
         InputManager input_handler = new InputManager();
+        ClientManager client_handler = new ClientManager(input_handler);
         if(args.length < 1) {
             message_handler.displayError("Not enough arguments provided ...");
             System.exit(1);
@@ -26,9 +26,9 @@ public class Main {
                     if(main_option == 0) message_handler.displayError("Enter number between 1 & 3");
                     else if(main_option == 1) {
                         // REGISTER NEW USER
-                        String username = input_handler.getStringInput("new username (exit to cancel)");
+                        String username = input_handler.getStringInput("Enter new username (exit to cancel)");
                         if(username.equals("exit")) continue;
-                        String passwd = input_handler.getStringInput("new password");
+                        String passwd = input_handler.getStringInput("Enter new password");
                         if (client_handler.registerUser(username, passwd)) {
                             // REGISTRATION SUCCESSFUL
                             message_handler.print("User created successfully ...");
@@ -38,9 +38,9 @@ public class Main {
                         }
                     } else if(main_option == 2) {
                         // LOGIN
-                        String username = input_handler.getStringInput("username (exit to cancel)");
+                        String username = input_handler.getStringInput("Enter username (exit to cancel)");
                         if(username.equals("exit")) continue;
-                        String passwd = input_handler.getStringInput("password");
+                        String passwd = input_handler.getStringInput("Enter password");
                         if(client_handler.userLogin(username, passwd)) {
                             // LOGIN SUCCESSFUL
                             message_handler.print("Login successful ...");
@@ -50,7 +50,7 @@ public class Main {
                             while(in_session) {
                                 message_handler.displaySessionMenu();
                                 // USER'S SESSION OPTION
-                                user_option = input_handler.getIntInput(1, 6, 0);
+                                user_option = input_handler.getIntInput(1, 5, 0);
                                 if(user_option == 0) message_handler.displayError("Enter number between 1 & 6");
                                 else if(user_option == 1) {
                                     // INFORMATION
@@ -67,7 +67,7 @@ public class Main {
                                         }
                                     } else if(user_option == 2) {
                                         // USER INFO
-                                        String usr = input_handler.getStringInput("username");
+                                        String usr = input_handler.getStringInput("Enter username");
                                         List<List<String>> info = client_handler.getRosterInformation(2, usr);
                                         if(info.size() == 0) {
                                             message_handler.displayError("No user found");
@@ -83,16 +83,22 @@ public class Main {
                                 } else if(user_option == 2) {
                                     // CONTACTS
                                     message_handler.displayContactOptions();
-                                    user_option = input_handler.getIntInput(1, 2, 0);
+                                    user_option = input_handler.getIntInput(1, 3, 0);
                                     if(user_option == 0) message_handler.displayError("Enter a number between 1 & 3");
                                     else if(user_option == 1) {
                                         // SEND FRIEND REQUEST
-                                        String usr = input_handler.getStringInput("username");
-                                        String nick = input_handler.getStringInput("user's nickname");
-                                        int res = client_handler.sendFriendRequest(usr, nick);
+                                        String usr = input_handler.getStringInput("Enter username");
+                                        int res = client_handler.sendFriendRequest(usr);
                                         if(res < 0) message_handler.displayError("Unable to send friend request");
-                                        else if(res == 0) message_handler.displayError("User is already in roster");
+                                        else if(res == 0) message_handler.displayError("User is already in Contacts List");
                                         else if(res == 1) message_handler.print("Friend request send successfully");
+                                    } else if(user_option == 2) {
+                                        // MANAGE PENDING REQUESTS
+                                        if(client_handler.getPendingRequests() > 0) {
+                                            client_handler.handleRequests();
+                                        } else {
+                                            message_handler.print("No Pending Requests ...");
+                                        }
                                     }
                                 } else if(user_option == 3) {
                                     //ADMINISTRATION
@@ -103,7 +109,7 @@ public class Main {
                                         // CHANGE STATUS
                                         message_handler.displayStatusOptions();
                                         int st_option = input_handler.getIntInput(1, 5, 1);
-                                        String message = input_handler.getStringInput("status");
+                                        String message = input_handler.getStringInput("Enter new status");
                                         if(client_handler.changeUserStatus(st_option, message)) {
                                             message_handler.print("Status changed successfully");
                                         } else {
@@ -111,7 +117,7 @@ public class Main {
                                         }
                                     } else if(user_option == 2) {
                                         // DELETE ACCOUNT
-                                        if(input_handler.getConfirmation()) {
+                                        if(input_handler.getConfirmation("Enter confirmation")) {
                                             if(client_handler.deleteAccount()) {
                                                 message_handler.print("Account deleted successfully");
                                                 in_session = false;
@@ -121,12 +127,9 @@ public class Main {
                                         }
                                     }
                                 } else if(user_option == 4) {
-                                    // NOTIFICATION
-                                    message_handler.displayNotificationsOptions();
-                                } else if(user_option == 5) {
                                     // CHAT
                                     message_handler.displayChatOptions();
-                                } else if(user_option == 6) {
+                                } else if(user_option == 5) {
                                     // CLOSE SESSION
                                     message_handler.print("Closing session ...\n");
                                     in_session = false;
