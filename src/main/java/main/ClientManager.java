@@ -11,10 +11,14 @@ import org.jivesoftware.smack.roster.*;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.iqregister.AccountManager;
+import org.jivesoftware.smackx.muc.MultiUserChat;
+import org.jivesoftware.smackx.muc.MultiUserChatException;
+import org.jivesoftware.smackx.muc.MultiUserChatManager;
 import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.Jid;
 import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.jid.parts.Localpart;
+import org.jxmpp.jid.parts.Resourcepart;
 import org.jxmpp.stringprep.XmppStringprepException;
 
 import java.io.IOException;
@@ -28,6 +32,9 @@ public class ClientManager {
     SubscriptionManager sub_handler;
     ChatManager chat_manager;
     MessageManager messages_handler;
+    MultiUserChatManager mult_chat_manager;
+    MultiUserChat chat_room;
+    RoomManager room_handler;
     String s_username, s_password, host_name;
 
     public ClientManager() {
@@ -58,6 +65,7 @@ public class ClientManager {
         this.roster_handler = new RosterManager();
         this.sub_handler = new SubscriptionManager();
         this.messages_handler = new MessageManager();
+        this.room_handler = new RoomManager();
     }
 
     public boolean registerUser(String username, String password) {
@@ -87,6 +95,7 @@ public class ClientManager {
             if(!this.roster.isLoaded()) roster.reloadAndWait();
             this.chat_manager = ChatManager.getInstanceFor(this.connection);
             this.chat_manager.addIncomingListener(this.messages_handler);
+            this.mult_chat_manager = MultiUserChatManager.getInstanceFor(this.connection);
         } catch (XMPPException | SmackException | IOException | InterruptedException e) {
             return false;
         }
@@ -199,7 +208,7 @@ public class ClientManager {
                 return;
             }
             Chat chat = ChatManager.getInstanceFor(this.connection).chatWith(jid);
-            OutputManager.getInstance().print("====== "+username+"CHAT ======");
+            OutputManager.getInstance().print("====== "+username+" CHAT ======");
             String message;
             while(true) {
                 message = InputManager.getInstance().getStringInput("(exit to leave chat)");
@@ -212,8 +221,31 @@ public class ClientManager {
         }
     }
 
-    public void chatWithRoom() {
-
+    public void chatWithRoom(String room_name) {
+        try {
+            EntityBareJid jid = JidCreate.entityBareFrom(room_name+"@conference."+this.host_name.substring(1));
+            MultiUserChat muc = this.mult_chat_manager.getMultiUserChat(jid);
+            MultiUserChat.MucCreateConfigFormHandle form = muc.createOrJoin(Resourcepart.from(this.s_username));
+            if(form != null) {
+                OutputManager.getInstance().print("Created room "+room_name);
+                form.makeInstant();
+                form.getConfigFormManager().submitConfigurationForm();
+            }
+            else OutputManager.getInstance().print("Joined room "+room_name);
+            muc.addMessageListener(this.room_handler);
+            while(true) {
+                String message = InputManager.getInstance().getStringInput("(exit to leave room)");
+                if(message.equals("exit")) break;
+                muc.sendMessage(message);
+            }
+            muc.removeMessageListener(this.room_handler);
+            muc.leave();
+        } catch (XmppStringprepException | XMPPException.XMPPErrorException | SmackException.NotConnectedException |
+                 SmackException.NoResponseException | InterruptedException |
+                 MultiUserChatException.NotAMucServiceException | MultiUserChatException.MucNotJoinedException |
+                 MultiUserChatException.MucAlreadyJoinedException e) {
+            OutputManager.getInstance().displayError("Unable to connect to room "+room_name);
+        }
     }
 
     public boolean deleteAccount() {

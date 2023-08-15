@@ -49,7 +49,7 @@ public class Main {
                                 OutputManager.getInstance().displaySessionMenu();
                                 // USER'S SESSION OPTION
                                 user_option = InputManager.getInstance().getIntInput(1, 5, 0);
-                                if(user_option == 0) OutputManager.getInstance().displayError("Enter number between 1 & 6");
+                                if(user_option == 0) OutputManager.getInstance().displayError("Enter number between 1 & 5");
                                 else if(user_option == 1) {
                                     // INFORMATION
                                     OutputManager.getInstance().displayInfoOptions();
@@ -59,7 +59,7 @@ public class Main {
                                         // ALL USERS INFO
                                         List<List<String>> info = client_handler.getRosterInformation(1, "");
                                         if(info.size() == 0) {
-                                            OutputManager.getInstance().displayError("No users found");
+                                            OutputManager.getInstance().print("-- No users found --");
                                         } else {
                                             OutputManager.getInstance().displayUsersInfo(info);
                                         }
@@ -135,7 +135,8 @@ public class Main {
                                         client_handler.chatWithUser(usr);
                                     } else if(user_option == 2) {
                                         // CHAT WITH USERS (ROOM)
-                                        client_handler.chatWithRoom();
+                                        String room_name = InputManager.getInstance().getStringInput("Enter room name");
+                                        client_handler.chatWithRoom(room_name);
                                     }
                                 } else if(user_option == 5) {
                                     // CLOSE SESSION

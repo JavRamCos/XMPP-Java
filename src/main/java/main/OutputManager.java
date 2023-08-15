@@ -83,8 +83,8 @@ public class OutputManager {
     public void displayChatOptions() {
         System.out.print("""
                 \n========== CHAT OPTIONS ==========
-                1. User chat
-                2. Group chat
+                1. User Chat
+                2. Join/Create Room Chat
                 3. Cancel""");
     }
 
