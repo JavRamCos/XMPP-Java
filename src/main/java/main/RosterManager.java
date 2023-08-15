@@ -20,6 +20,6 @@ public class RosterManager implements RosterListener {
     public void presenceChanged(Presence presence) {
         String usr = presence.getFrom().toString().substring(0, presence.getFrom().toString().indexOf("@"));
         String status = presence.getStatus() == null ? " " : " ("+presence.getStatus()+") ";
-        System.out.print("\n***** "+usr+" is now " +presence.getMode().toString()+status+"*****");
+        OutputManager.getInstance().print("\n***** "+usr+" is now " +presence.getMode().toString()+status+"*****");
     }
 }

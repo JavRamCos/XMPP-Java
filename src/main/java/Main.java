@@ -1,16 +1,14 @@
 import main.ClientManager;
 import main.InputManager;
-import main.MessageManager;
+import main.OutputManager;
 
 import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        MessageManager message_handler = new MessageManager();
-        InputManager input_handler = new InputManager();
-        ClientManager client_handler = new ClientManager(input_handler);
+        ClientManager client_handler = new ClientManager();
         if(args.length < 1) {
-            message_handler.displayError("Not enough arguments provided ...");
+            OutputManager.getInstance().displayError("Not enough arguments provided ...");
             System.exit(1);
         }
         new Thread(() -> {
@@ -20,138 +18,148 @@ public class Main {
             // MAIN LOOP
             while(is_running) {
                 if(client_handler.connectToServer(args[0])) {
-                    message_handler.displayLoginSignupMenu();
+                    OutputManager.getInstance().displayLoginSignupMenu();
                     // USER'S MAIN OPTION
-                    main_option = input_handler.getIntInput(1, 3, 0);
-                    if(main_option == 0) message_handler.displayError("Enter number between 1 & 3");
+                    main_option = InputManager.getInstance().getIntInput(1, 3, 0);
+                    if(main_option == 0) OutputManager.getInstance().displayError("Enter number between 1 & 3");
                     else if(main_option == 1) {
                         // REGISTER NEW USER
-                        String username = input_handler.getStringInput("Enter new username (exit to cancel)");
+                        String username = InputManager.getInstance().getStringInput("Enter new username (exit to cancel)");
                         if(username.equals("exit")) continue;
-                        String passwd = input_handler.getStringInput("Enter new password");
+                        String passwd = InputManager.getInstance().getStringInput("Enter new password");
                         if (client_handler.registerUser(username, passwd)) {
                             // REGISTRATION SUCCESSFUL
-                            message_handler.print("User created successfully ...");
+                            OutputManager.getInstance().print("User created successfully ...");
                         } else {
                             // REGISTRATION FAILED
-                            message_handler.print("User creation failed ...");
+                            OutputManager.getInstance().print("User creation failed ...");
                         }
                     } else if(main_option == 2) {
                         // LOGIN
-                        String username = input_handler.getStringInput("Enter username (exit to cancel)");
+                        String username = InputManager.getInstance().getStringInput("Enter username (exit to cancel)");
                         if(username.equals("exit")) continue;
-                        String passwd = input_handler.getStringInput("Enter password");
+                        String passwd = InputManager.getInstance().getStringInput("Enter password");
                         if(client_handler.userLogin(username, passwd)) {
                             // LOGIN SUCCESSFUL
-                            message_handler.print("Login successful ...");
-                            message_handler.setUsername(username);
+                            OutputManager.getInstance().print("Login successful ...");
+                            OutputManager.getInstance().setUsername(username);
                             in_session = true;
                             // USER SESSION
                             while(in_session) {
-                                message_handler.displaySessionMenu();
+                                OutputManager.getInstance().displaySessionMenu();
                                 // USER'S SESSION OPTION
-                                user_option = input_handler.getIntInput(1, 5, 0);
-                                if(user_option == 0) message_handler.displayError("Enter number between 1 & 6");
+                                user_option = InputManager.getInstance().getIntInput(1, 5, 0);
+                                if(user_option == 0) OutputManager.getInstance().displayError("Enter number between 1 & 6");
                                 else if(user_option == 1) {
                                     // INFORMATION
-                                    message_handler.displayInfoOptions();
-                                    user_option = input_handler.getIntInput(1, 4, 0);
-                                    if(user_option == 0) message_handler.displayError("Enter number between 1 & 4");
+                                    OutputManager.getInstance().displayInfoOptions();
+                                    user_option = InputManager.getInstance().getIntInput(1, 4, 0);
+                                    if(user_option == 0) OutputManager.getInstance().displayError("Enter number between 1 & 4");
                                     else if(user_option == 1) {
                                         // ALL USERS INFO
                                         List<List<String>> info = client_handler.getRosterInformation(1, "");
                                         if(info.size() == 0) {
-                                            message_handler.displayError("No users found");
+                                            OutputManager.getInstance().displayError("No users found");
                                         } else {
-                                            message_handler.displayUsersInfo(info);
+                                            OutputManager.getInstance().displayUsersInfo(info);
                                         }
                                     } else if(user_option == 2) {
                                         // USER INFO
-                                        String usr = input_handler.getStringInput("Enter username");
+                                        String usr = InputManager.getInstance().getStringInput("Enter username");
                                         List<List<String>> info = client_handler.getRosterInformation(2, usr);
                                         if(info.size() == 0) {
-                                            message_handler.displayError("No user found");
+                                            OutputManager.getInstance().displayError("No user found");
                                         } else {
-                                            message_handler.displayUsersInfo(info);
+                                            OutputManager.getInstance().displayUsersInfo(info);
                                         }
                                     } else if(user_option == 3) {
                                         // SELF INFO
                                         List<String> info = client_handler.getUserInformation();
-                                        message_handler.print("-> Username: "+info.get(0));
-                                        message_handler.print("   Password: "+info.get(1));
+                                        OutputManager.getInstance().print("-> Username: "+info.get(0));
+                                        OutputManager.getInstance().print("   Password: "+info.get(1));
                                     }
                                 } else if(user_option == 2) {
                                     // CONTACTS
-                                    message_handler.displayContactOptions();
-                                    user_option = input_handler.getIntInput(1, 3, 0);
-                                    if(user_option == 0) message_handler.displayError("Enter a number between 1 & 3");
+                                    OutputManager.getInstance().displayContactOptions();
+                                    user_option = InputManager.getInstance().getIntInput(1, 3, 0);
+                                    if(user_option == 0) OutputManager.getInstance().displayError("Enter a number between 1 & 3");
                                     else if(user_option == 1) {
                                         // SEND FRIEND REQUEST
-                                        String usr = input_handler.getStringInput("Enter username");
+                                        String usr = InputManager.getInstance().getStringInput("Enter username");
                                         int res = client_handler.sendFriendRequest(usr);
-                                        if(res < 0) message_handler.displayError("Unable to send friend request");
-                                        else if(res == 0) message_handler.displayError("User is already in Contacts List");
-                                        else if(res == 1) message_handler.print("Friend request send successfully");
+                                        if(res < 0) OutputManager.getInstance().displayError("Unable to send friend request");
+                                        else if(res == 0) OutputManager.getInstance().displayError("User is already in Contacts List");
+                                        else if(res == 1) OutputManager.getInstance().print("Friend request send successfully");
                                     } else if(user_option == 2) {
                                         // MANAGE PENDING REQUESTS
                                         if(client_handler.getPendingRequests() > 0) {
                                             client_handler.handleRequests();
                                         } else {
-                                            message_handler.print("No Pending Requests ...");
+                                            OutputManager.getInstance().print("No Pending Requests ...");
                                         }
                                     }
                                 } else if(user_option == 3) {
                                     //ADMINISTRATION
-                                    message_handler.displayAdminOptions();
-                                    user_option = input_handler.getIntInput(1, 3, 0);
-                                    if(user_option == 0) message_handler.displayError("Enter a number between 1 & 3");
+                                    OutputManager.getInstance().displayAdminOptions();
+                                    user_option = InputManager.getInstance().getIntInput(1, 3, 0);
+                                    if(user_option == 0) OutputManager.getInstance().displayError("Enter a number between 1 & 3");
                                     else if(user_option == 1) {
                                         // CHANGE STATUS
-                                        message_handler.displayStatusOptions();
-                                        int st_option = input_handler.getIntInput(1, 5, 1);
-                                        String message = input_handler.getStringInput("Enter new status");
+                                        OutputManager.getInstance().displayStatusOptions();
+                                        int st_option = InputManager.getInstance().getIntInput(1, 5, 1);
+                                        String message = InputManager.getInstance().getStringInput("Enter new status");
                                         if(client_handler.changeUserStatus(st_option, message)) {
-                                            message_handler.print("Status changed successfully");
+                                            OutputManager.getInstance().print("Status changed successfully");
                                         } else {
-                                            message_handler.displayError("Status change unsuccessful");
+                                            OutputManager.getInstance().displayError("Status change unsuccessful");
                                         }
                                     } else if(user_option == 2) {
                                         // DELETE ACCOUNT
-                                        if(input_handler.getConfirmation("Enter confirmation")) {
+                                        if(InputManager.getInstance().getConfirmation("Enter confirmation")) {
                                             if(client_handler.deleteAccount()) {
-                                                message_handler.print("Account deleted successfully");
+                                                OutputManager.getInstance().print("Account deleted successfully");
                                                 in_session = false;
                                             } else {
-                                                message_handler.displayError("Account deletion unsuccessful");
+                                                OutputManager.getInstance().displayError("Account deletion unsuccessful");
                                             }
                                         }
                                     }
                                 } else if(user_option == 4) {
                                     // CHAT
-                                    message_handler.displayChatOptions();
+                                    OutputManager.getInstance().displayChatOptions();
+                                    user_option = InputManager.getInstance().getIntInput(1, 3, 0);
+                                    if(user_option == 0) OutputManager.getInstance().displayError("Enter a number between 1 & 3");
+                                    else if(user_option == 1) {
+                                        // CHAT WITH USER (1v1)
+                                        String usr = InputManager.getInstance().getStringInput("Enter username");
+                                        client_handler.chatWithUser(usr);
+                                    } else if(user_option == 2) {
+                                        // CHAT WITH USERS (ROOM)
+                                        client_handler.chatWithRoom();
+                                    }
                                 } else if(user_option == 5) {
                                     // CLOSE SESSION
-                                    message_handler.print("Closing session ...\n");
+                                    OutputManager.getInstance().print("Closing session ...\n");
                                     in_session = false;
                                 }
                             }
                         } else {
                             // LOGIN FAILED
-                            message_handler.displayError("Login failed ...\n");
+                            OutputManager.getInstance().displayError("Login failed ...\n");
                         }
                     } else if(main_option == 3) {
                         // DISCONNECT FROM SERVER
-                        message_handler.print("Disconnecting from server ...");
+                        OutputManager.getInstance().print("Disconnecting from server ...");
                         is_running = false;
                     }
                     client_handler.disconnectFromServer();
                 } else {
                     // FAILED TO CONNECT TO SERVER
-                    message_handler.displayError("Server connection error\n");
+                    OutputManager.getInstance().displayError("Server connection error\n");
                     is_running = false;
                 }
             }
-            message_handler.print("\nProgram closed");
+            OutputManager.getInstance().print("\nProgram closed");
         }).start();
     }
 }

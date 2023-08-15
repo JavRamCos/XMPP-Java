@@ -1,6 +1,8 @@
 package main;
 
 import org.jivesoftware.smack.*;
+import org.jivesoftware.smack.chat2.Chat;
+import org.jivesoftware.smack.chat2.ChatManager;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.Presence.Type;
 import org.jivesoftware.smack.packet.Presence.Mode;
@@ -24,12 +26,13 @@ public class ClientManager {
     Roster roster;
     RosterManager roster_handler;
     SubscriptionManager sub_handler;
+    ChatManager chat_manager;
+    MessageManager messages_handler;
     String s_username, s_password, host_name;
-    InputManager input_handler;
-    public ClientManager(InputManager input_handler) {
+
+    public ClientManager() {
         this.s_username = "";
         this.s_password = "";
-        this.input_handler = input_handler;
         setListeners();
     }
 
@@ -54,6 +57,7 @@ public class ClientManager {
     public void setListeners() {
         this.roster_handler = new RosterManager();
         this.sub_handler = new SubscriptionManager();
+        this.messages_handler = new MessageManager();
     }
 
     public boolean registerUser(String username, String password) {
@@ -81,6 +85,8 @@ public class ClientManager {
             this.roster.addRosterListener(this.roster_handler);
             this.roster.addSubscribeListener(this.sub_handler);
             if(!this.roster.isLoaded()) roster.reloadAndWait();
+            this.chat_manager = ChatManager.getInstanceFor(this.connection);
+            this.chat_manager.addIncomingListener(this.messages_handler);
         } catch (XMPPException | SmackException | IOException | InterruptedException e) {
             return false;
         }
@@ -163,8 +169,8 @@ public class ClientManager {
             Jid jid = entry.getKey();
             Presence pres = entry.getValue();
             String usr = pres.getFrom().toString().substring(0, pres.getFrom().toString().indexOf("@"));
-            System.out.println("*** " + num_requests + "Requests Left ***");
-            if(input_handler.getConfirmation("Approve "+usr+"'s request")) {
+            OutputManager.getInstance().print("*** " + num_requests + "Requests Left ***");
+            if(InputManager.getInstance().getConfirmation("Approve "+usr+"'s request")) {
                 Stanza subscribed = new Presence(Type.subscribed);
                 subscribed.setTo(jid);
                 Stanza subscribe = new Presence(Type.subscribe);
@@ -173,7 +179,7 @@ public class ClientManager {
                     this.connection.sendStanza(subscribe);
                     this.connection.sendStanza(subscribed);
                 } catch (SmackException.NotConnectedException | InterruptedException e) {
-                    System.out.println("Unable to process request");
+                    OutputManager.getInstance().displayError("Unable to process request");
                 }
             }
             num_requests--;
@@ -183,6 +189,31 @@ public class ClientManager {
 
     public int getPendingRequests() {
         return this.sub_handler.getRequests().size();
+    }
+
+    public void chatWithUser(String username) {
+        try {
+            EntityBareJid jid = JidCreate.entityBareFrom(username+this.host_name);
+            if(!this.roster.contains(jid)) {
+                OutputManager.getInstance().displayError("User is not in your contacts list");
+                return;
+            }
+            Chat chat = ChatManager.getInstanceFor(this.connection).chatWith(jid);
+            OutputManager.getInstance().print("====== "+username+"CHAT ======");
+            String message;
+            while(true) {
+                message = InputManager.getInstance().getStringInput("(exit to leave chat)");
+                if(message.equals("exit")) break;
+                chat.send(message);
+            }
+            OutputManager.getInstance().print("====================");
+        } catch (XmppStringprepException | SmackException.NotConnectedException | InterruptedException e) {
+            OutputManager.getInstance().displayError("Chat could not be established with "+username);
+        }
+    }
+
+    public void chatWithRoom() {
+
     }
 
     public boolean deleteAccount() {
@@ -198,9 +229,13 @@ public class ClientManager {
     }
 
     public void disconnectFromServer() {
+        this.sub_handler.resetRequests();
         if(this.roster != null) {
             this.roster.removeRosterListener(this.roster_handler);
             this.roster.removeSubscribeListener(this.sub_handler);
+        }
+        if(this.chat_manager != null) {
+            this.chat_manager.removeIncomingListener(this.messages_handler);
         }
         this.connection.disconnect();
         this.s_username = "";

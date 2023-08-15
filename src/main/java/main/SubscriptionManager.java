@@ -17,7 +17,7 @@ public class SubscriptionManager implements SubscribeListener {
     @Override
     public SubscribeAnswer processSubscribe(Jid jid, Presence presence) {
         String usr = presence.getFrom().toString().substring(0, presence.getFrom().toString().indexOf("@"));
-        System.out.println("\n***** "+usr+" sent You An Invitation *****");
+        OutputManager.getInstance().print("\n***** "+usr+" sent You An Invitation *****");
         this.requests.put(jid, presence);
         return null;
     }

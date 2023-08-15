@@ -7,7 +7,16 @@ import java.util.Scanner;
 public class InputManager {
     Scanner scanner;
     List<String> confirms;
-    public InputManager() {
+    private static InputManager instance = null;
+
+    public static InputManager getInstance() {
+        if(instance == null) {
+            instance = new InputManager();
+        }
+        return instance;
+    }
+
+    private InputManager() {
         this.scanner = new Scanner(System.in);
         this.confirms = Arrays.asList("Yes", "yes", "Y", "y");
     }
