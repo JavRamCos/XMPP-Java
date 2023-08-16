@@ -48,7 +48,7 @@ public class Main {
                             while(in_session) {
                                 OutputManager.getInstance().displaySessionMenu();
                                 // USER'S SESSION OPTION
-                                user_option = InputManager.getInstance().getIntInput(1, 5, 0);
+                                user_option = InputManager.getInstance().getIntInput(1, 6, 0);
                                 if(user_option == 0) OutputManager.getInstance().displayError("Enter number between 1 & 5");
                                 else if(user_option == 1) {
                                     // INFORMATION
@@ -139,6 +139,13 @@ public class Main {
                                         client_handler.chatWithRoom(room_name);
                                     }
                                 } else if(user_option == 5) {
+                                    // SEND FILE
+                                    String usr = InputManager.getInstance().getStringInput("Enter username");
+                                    String file_name = InputManager.getInstance().getStringInput("Enter file name");
+                                    if(client_handler.fileTransfer(usr, file_name)) {
+                                        OutputManager.getInstance().print("File transfered successfully");
+                                    }
+                                } else if(user_option == 6) {
                                     // CLOSE SESSION
                                     OutputManager.getInstance().print("Closing session ...\n");
                                     in_session = false;

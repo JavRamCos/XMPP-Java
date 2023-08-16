@@ -32,7 +32,8 @@ public class OutputManager {
                 "2. Manage contacts\n" +
                 "3. Manage Account\n" +
                 "4. Chat\n" +
-                "5. Close session");
+                "5. Send File\n" +
+                "6. Close session");
     }
 
     public void displayInfoOptions() {

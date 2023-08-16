@@ -10,17 +10,21 @@ import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smack.roster.*;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
+import org.jivesoftware.smackx.filetransfer.*;
+import org.jivesoftware.smackx.filetransfer.FileTransferManager;
 import org.jivesoftware.smackx.iqregister.AccountManager;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatException;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
 import org.jxmpp.jid.EntityBareJid;
+import org.jxmpp.jid.EntityFullJid;
 import org.jxmpp.jid.Jid;
 import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.jid.parts.Localpart;
 import org.jxmpp.jid.parts.Resourcepart;
 import org.jxmpp.stringprep.XmppStringprepException;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -33,8 +37,9 @@ public class ClientManager {
     ChatManager chat_manager;
     MessageManager messages_handler;
     MultiUserChatManager mult_chat_manager;
-    MultiUserChat chat_room;
     RoomManager room_handler;
+    FileTransferManager file_manager;
+    FileManager file_handler;
     String s_username, s_password, host_name;
 
     public ClientManager() {
@@ -66,6 +71,7 @@ public class ClientManager {
         this.sub_handler = new SubscriptionManager();
         this.messages_handler = new MessageManager();
         this.room_handler = new RoomManager();
+        this.file_handler = new FileManager();
     }
 
     public boolean registerUser(String username, String password) {
@@ -96,6 +102,8 @@ public class ClientManager {
             this.chat_manager = ChatManager.getInstanceFor(this.connection);
             this.chat_manager.addIncomingListener(this.messages_handler);
             this.mult_chat_manager = MultiUserChatManager.getInstanceFor(this.connection);
+            this.file_manager = FileTransferManager.getInstanceFor(this.connection);
+            this.file_manager.addFileTransferListener(this.file_handler);
         } catch (XMPPException | SmackException | IOException | InterruptedException e) {
             return false;
         }
@@ -246,6 +254,37 @@ public class ClientManager {
                  MultiUserChatException.MucAlreadyJoinedException e) {
             OutputManager.getInstance().displayError("Unable to connect to room "+room_name);
         }
+    }
+
+    public boolean fileTransfer(String username, String file_name) {
+        try {
+            EntityFullJid jid = JidCreate.entityFullFrom(username+this.host_name+"/Smack");
+            OutgoingFileTransfer transfer = this.file_manager.createOutgoingFileTransfer(jid);
+            File file = new File(file_name);
+            if(file.canRead()) OutputManager.getInstance().print(file_name+" content could be read");
+            else {
+                OutputManager.getInstance().displayError(file_name+" content could not be read");
+                return false;
+            }
+            transfer.sendFile(file, "");
+            while(!transfer.isDone()) {
+                if(transfer.getStatus().equals(FileTransfer.Status.error)) {
+                    OutputManager.getInstance().displayError("Unable to send file "+file_name);
+                } else if(transfer.getStatus().equals(FileTransfer.Status.cancelled)) {
+                    OutputManager.getInstance().displayError(file_name+" was cancelled");
+                } else if(transfer.getStatus().equals(FileTransfer.Status.refused)) {
+                    OutputManager.getInstance().displayError(file_name+" was refused");
+                }
+            }
+            if(transfer.getStatus().equals(FileTransfer.Status.error)
+                    || transfer.getStatus().equals(FileTransfer.Status.cancelled)
+                    || transfer.getStatus().equals(FileTransfer.Status.refused)) {
+                return false;
+            }
+        } catch (XmppStringprepException | SmackException e) {
+            return false;
+        }
+        return true;
     }
 
     public boolean deleteAccount() {
