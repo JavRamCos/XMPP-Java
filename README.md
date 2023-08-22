@@ -40,6 +40,10 @@ To run this program correctly:
    - `Int` when asked for an option
    - `String` otherwise
 
+## *** NOTE ***
+
+Client's Functionalities & Author's conclusions are inside the `Documentation.pdf` file
+
 ## Author
 
 [Javier Ramirez Cospin](https://github.com/JavRamCos)
