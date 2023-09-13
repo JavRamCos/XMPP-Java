@@ -32,7 +32,7 @@ public class OutputManager {
                 "2. Manage contacts\n" +
                 "3. Manage Account\n" +
                 "4. Chat\n" +
-                "5. Send File\n" +
+                "5. Routing Options\n" +
                 "6. Close session");
     }
 
@@ -87,6 +87,15 @@ public class OutputManager {
                 1. User Chat
                 2. Join/Create Room Chat
                 3. Cancel""");
+    }
+
+    public void displayRoutingOptions() {
+        System.out.print("""
+                \n========== ROUTING OPTIONS ==========
+                1. Read JSON file
+                2. Write new Message
+                3. Show Distance Vector Table
+                4. Cancel""");
     }
 
     public void displayError(String msg) {

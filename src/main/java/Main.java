@@ -2,12 +2,17 @@ import main.ClientManager;
 import main.InputManager;
 import main.OutputManager;
 import main.Message;
+import main.DistanceVector;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class Main {
@@ -49,6 +54,13 @@ public class Main {
                             // LOGIN SUCCESSFUL
                             OutputManager.getInstance().print("Login successful ...");
                             OutputManager.getInstance().setUsername(username);
+                            // GET TOPOLOGY
+                            List<List<String>> topology = getTopology();
+                            // GET NETWORK NODE NAMES
+                            List<String> node_names = getNodeNames(topology);
+                            // === NODE VALUES ===
+                            DistanceVector dv = new DistanceVector();
+                            dv.initialStep(username, topology);
                             in_session = true;
                             // USER SESSION
                             while(in_session) {
@@ -146,10 +158,37 @@ public class Main {
                                     }
                                 } else if(user_option == 5) {
                                     // SEND FILE
-                                    String usr = InputManager.getInstance().getStringInput("Enter username");
-                                    String file_name = InputManager.getInstance().getStringInput("Enter file name");
-                                    if(client_handler.fileTransfer(usr, file_name)) {
-                                        OutputManager.getInstance().print("File transfered successfully");
+                                    OutputManager.getInstance().displayRoutingOptions();
+                                    user_option = InputManager.getInstance().getIntInput(1, 4, 0);
+                                    if(user_option == 0) OutputManager.getInstance().displayError("Enter a number between 1 & 2");
+                                    else if(user_option == 1) {
+                                        String file_name = InputManager.getInstance().getStringInput("Enter file name");
+                                        Message json_msg = parseJSON(file_name);
+                                        if(json_msg != null) {
+                                            if(json_msg.getType().equals("info")) {
+                                                // UPDATE DISTANCE VECTOR TABLE
+                                                dv.updateTable(username, json_msg);
+                                            } else if(json_msg.getType().equals("message")) {
+                                                if(json_msg.getTo().equals(username)) {
+                                                    OutputManager.getInstance().print("\n-> ("+json_msg.getFrom()+") "+json_msg.getMessage());
+                                                } else {
+                                                    buildJSONFile(json_msg.getFrom(), json_msg.getTo(), json_msg.getMessage(),
+                                                            "Message.json", json_msg.getHop_count()+1);
+                                                    OutputManager.getInstance().print(username+" redirected message from "+json_msg.getFrom()+
+                                                            " to "+json_msg.getTo());
+                                                }
+                                            }
+                                        } else {
+                                            OutputManager.getInstance().displayError("Could not read JSON file");
+                                        }
+                                    } else if(user_option == 2) {
+                                        String to = InputManager.getInstance().getStringInput("Enter user's name");
+                                        String message = InputManager.getInstance().getStringInput("Enter message");
+                                        buildJSONFile(username, to, message, "Message.json", 0);
+                                        OutputManager.getInstance().print(username+" sent a new message to "+to+" ...");
+                                    }
+                                    if(user_option == 3) {
+                                        dv.showCurrentTable();
                                     }
                                 } else if(user_option == 6) {
                                     // CLOSE SESSION
@@ -181,9 +220,9 @@ public class Main {
         // DEFINE NETWORK TOPOLOGY (NON DIRECTIONAL)
         List<List<String>> topology = new ArrayList<>();
         // (list[0] -> list[1] -> list[2]) | (list[2] -> list[1] -> list[0])
-        topology.add(new ArrayList<>(Arrays.asList("A", "1", "B")));
-        topology.add(new ArrayList<>(Arrays.asList("A", "3", "C")));
-        topology.add(new ArrayList<>(Arrays.asList("B", "2", "C")));
+        topology.add(new ArrayList<>(Arrays.asList("ram18099-A", "1", "ram18099-B")));
+        topology.add(new ArrayList<>(Arrays.asList("ram18099-A", "3", "ram18099-C")));
+        topology.add(new ArrayList<>(Arrays.asList("ram18099-B", "2", "ram18099-C")));
         return topology;
     }
 
@@ -197,9 +236,8 @@ public class Main {
         return new ArrayList<>(hash_set);
     }
 
-    public static Message parseJSON() {
+    public static Message parseJSON(String json_file) {
         // READ .JSON FILE AND
-        String json_file = "src/Message.json";
         StringBuilder json = new StringBuilder();
         json.append("[");
         try {
@@ -240,6 +278,25 @@ public class Main {
             // ERROR OCURRED DURING .JSON FILE READING
             System.out.println("An error ocurred while reading .json file");
             return null;
+        }
+    }
+
+    public static void buildJSONFile(String from, String to, String msg, String file_name, int hop_count) {
+        String hop = Integer.toString(hop_count);
+        Path path = Paths.get("D:\\Documents\\UVG\\12vo Semestre\\REDES\\Proyecto1\\XMPP-Java\\src\\main\\java\\main\\"+file_name);
+        String content = "{" +
+                "\n\t\"type\": "+"\"message\"," +
+                "\n\t\"headers\": {" +
+                "\n\t\t\"from\": "+"\""+from+"\","+
+                "\n\t\t\"to\": "+"\""+to+"\","+
+                "\n\t\t\"hop_count\": "+"\""+hop+"\""+
+                "\n\t}," +
+                "\n\t\"payload\": "+"\""+msg+"\"" +
+                "\n}";
+        try {
+            Files.writeString(path, content, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            System.out.println("Contents could not be written to "+file_name);
         }
     }
 }
