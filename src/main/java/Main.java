@@ -1,8 +1,14 @@
 import main.ClientManager;
 import main.InputManager;
 import main.OutputManager;
+import main.Message;
 
-import java.util.List;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -169,5 +175,71 @@ public class Main {
             }
             OutputManager.getInstance().print("\nProgram closed");
         }).start();
+    }
+
+    public static List<List<String>> getTopology() {
+        // DEFINE NETWORK TOPOLOGY (NON DIRECTIONAL)
+        List<List<String>> topology = new ArrayList<>();
+        // (list[0] -> list[1] -> list[2]) | (list[2] -> list[1] -> list[0])
+        topology.add(new ArrayList<>(Arrays.asList("A", "1", "B")));
+        topology.add(new ArrayList<>(Arrays.asList("A", "3", "C")));
+        topology.add(new ArrayList<>(Arrays.asList("B", "2", "C")));
+        return topology;
+    }
+
+    public static List<String> getNodeNames(List<List<String>> topology) {
+        // GET each list[0] & list[2] in topology and return set result
+        Set<String> hash_set = new HashSet<>();
+        for(List<String> temp : topology) {
+            hash_set.add(temp.get(0));
+            hash_set.add(temp.get(2));
+        }
+        return new ArrayList<>(hash_set);
+    }
+
+    public static Message parseJSON() {
+        // READ .JSON FILE AND
+        String json_file = "src/Message.json";
+        StringBuilder json = new StringBuilder();
+        json.append("[");
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(json_file));
+            String line;
+            while((line = br.readLine()) != null) {
+                // APPEND INFORMATION
+                json.append(line);
+            }
+            json.append("]");
+            // CREATE NEW JSON ARRAY OBJECT
+            JSONArray jsonArray = new JSONArray(json.toString());
+            JSONObject jsonObject = jsonArray.getJSONObject(0);
+            // STORE INFORMATION (MESSAGE CLASS)
+            Message result = new Message();
+            result.setType(jsonObject.getString("type"));
+            result.setFrom(jsonObject.getJSONObject("headers").getString("from"));
+            result.setTo(jsonObject.getJSONObject("headers").getString("to"));
+            result.setHop_count(jsonObject.getJSONObject("headers").getInt("hop_count"));
+            if(jsonObject.getString("type").equalsIgnoreCase("message")) {
+                result.setMessage(jsonObject.getString("payload"));
+            } else {
+                // OBTAIN TABLE NEW INFORMATION
+                List<Object> temp = jsonObject.getJSONObject("payload").getJSONArray("distance_vector").toList();
+                List<List<String>> table_info = new ArrayList<>();
+                for(Object obj : temp) {
+                    // OBTAIN VALUES
+                    String vvv = obj.toString().substring(1, obj.toString().length()-1);
+                    List<String> entries = new ArrayList<>(Arrays.stream(vvv.split(",")).toList());
+                    entries.replaceAll(String::strip);
+                    table_info.add(entries);
+                }
+                result.setTable_info(table_info);
+            }
+            // RETURN INFORMATION
+            return result;
+        } catch (IOException e) {
+            // ERROR OCURRED DURING .JSON FILE READING
+            System.out.println("An error ocurred while reading .json file");
+            return null;
+        }
     }
 }
